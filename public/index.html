@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spelling Bee App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="app">
+    <h1>Spelling Bee App</h1>
+
+    <!-- Alphabet Buttons -->
+    <div class="alphabet" id="alphabet"></div>
+
+    <!-- Question Panel -->
+    <section class="center-panel">
+      <div class="question-meta">
+        <span id="current-question">Qn: -</span>
+        <span id="timer">30</span>s
+      </div>
+      <input type="text" id="spelling-input" placeholder="Type your spelling here..." />
+      <div class="buttons">
+        <button id="spell-btn">Spell</button>
+        <button id="check-btn">Check Answer</button>
+      </div>
+      <button id="reset-btn" style="background:#ccc;">Reset Quiz</button>
+      <div id="feedback"></div>
+      <div id="definition" class="hint"></div>
+    </section>
+
+    <!-- Sidebars -->
+    <aside class="sidebar left">
+      <h3>Students</h3>
+      <ul id="students"></ul>
+    </aside>
+
+    <aside class="sidebar right">
+      <h3>Questions</h3>
+      <div id="questions-grid" class="question-grid"></div>
+    </aside>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

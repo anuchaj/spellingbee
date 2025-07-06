@@ -1,0 +1,72 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f4f4f4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#app {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 1000px;
+  padding: 20px;
+  position: relative;
+}
+
+.alphabet {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.alphabet button {
+  margin: 2px;
+  padding: 8px 10px;
+  font-size: 18px;
+}
+
+.center-panel {
+  flex: 2;
+  text-align: center;
+}
+
+#spelling-input {
+  width: 80%;
+  padding: 10px;
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+.buttons button {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+}
+
+#feedback {
+  font-size: 20px;
+  margin-top: 10px;
+}
+
+.hint {
+  margin-top: 15px;
+  color: #555;
+}
+
+.sidebar {
+  width: 150px;
+  margin: 10px;
+}
+
+.question-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+}
+
+.question-grid button {
+  padding: 10px;
+  font-size: 16px;
+}
