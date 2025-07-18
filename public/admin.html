@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin | Manage Questions</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="admin-panel">
+    <h2>🧠 Spelling Bee Admin Panel</h2>
+
+    <form id="question-form">
+      <input type="hidden" id="question-id" />
+      <input type="text" id="word" placeholder="Word" required />
+      <input type="text" id="definition" placeholder="Definition" required />
+      <button type="submit">Save Question</button>
+      <button type="button" id="cancel-edit" style="display:none;">Cancel</button>
+    </form>
+
+    <h3>All Questions</h3>
+    <table id="questions-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Word</th>
+          <th>Definition</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="question-list"></tbody>
+    </table>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>

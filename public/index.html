@@ -7,11 +7,37 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
   <main id="app">
     <h1>Spelling Bee App</h1>
 
+    <!-- Admin Page -->
+     <a href="admin.html">Admin Login</a>
+
     <!-- Alphabet Buttons -->
     <div class="alphabet" id="alphabet"></div>
+
+    <!-- Category Dropdown -->
+    <div id="category-container">
+      <label for="category-select">Choose Category:</label>
+      <select id="category-select"></select>
+    </div>
+
+    <!-- Contest Setup -->
+    <div id="contest-setup">
+      <label for="participant-count">Participants:</label>
+      <select id="participant-count">
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+      </select>
+      <button id="start-contest-btn">Start Contest</button>
+    </div>
+
+    <!-- Scoreboard -->
+    <div id="scoreboard" class="scoreboard"></div>
+
 
     <!-- Question Panel -->
     <section class="center-panel">
@@ -29,9 +55,12 @@
       <div id="definition" class="hint"></div>
     </section>
 
+    <!-- Reset Scores -->
+    <button id="reset-scores-btn" style="background:#999; color:#fff;">Reset Scores</button>
+
     <!-- Sidebars -->
     <aside class="sidebar left">
-      <h3>Students</h3>
+      <h3>Contestants</h3>
       <ul id="students"></ul>
     </aside>
 

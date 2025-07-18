@@ -70,3 +70,74 @@ body {
   padding: 10px;
   font-size: 16px;
 }
+
+
+/* Admin styless */
+.admin-panel {
+  width: 80%;
+  margin: 20px auto;
+  background: white;
+  padding: 20px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  border-radius: 10px;
+}
+
+#question-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+#question-form input {
+  flex: 1;
+  padding: 8px;
+  font-size: 16px;
+}
+
+#question-form button {
+  padding: 8px 15px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+table th, table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+}
+
+.actions button {
+  margin-right: 5px;
+}
+
+
+#category-container,
+#contest-setup {
+  margin: 10px 0;
+  text-align: center;
+}
+
+.scoreboard {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.scoreboard .participant {
+  background: #eee;
+  padding: 10px;
+  border-radius: 8px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.scoreboard .active {
+  background: #ffd700;
+  font-weight: bold;
+}

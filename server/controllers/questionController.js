@@ -8,6 +8,7 @@ const questionsFromFile = JSON.parse(
 );
 
 // GET all questions
+/*
 const getQuestions = async (req, res) => {
   try {
     // Switch between file or DB
@@ -18,6 +19,23 @@ const getQuestions = async (req, res) => {
     res.status(500).json({ error: "Failed to load questions." });
   }
 };
+*/
+
+// GET all questions
+const getQuestions = async (req, res) => {
+  try {
+    const { category } = req.query;
+    let filter = {};
+    if (category) filter.category = category;
+
+    const questions = await Question.find(filter).populate("category");
+    res.json(questions);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load questions." });
+  }
+};
+
+
 
 // POST new question
 const addQuestion = async (req, res) => {

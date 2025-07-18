@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const path = require("path");
 const questionRoutes = require("./routes/questionRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
 const cors = require('cors');
 
 dotenv.config();
@@ -17,6 +18,9 @@ app.use(express.static(path.join(__dirname, "../public")));
 
 // API routes
 app.use("/api/questions", questionRoutes);
+
+// Add route
+app.use("/api/categories", categoryRoutes);
 
 // Connect MongoDB
 mongoose.connect(process.env.MONGO_URI, {

@@ -14,6 +14,12 @@ let currentQuestionIndex = -1;
 let timer;
 let timeLeft = 30;
 
+let currentCategory = "";
+let participants = [];
+let currentParticipant = 0;
+let contestStarted = false;
+
+
 // Initialize A-Z buttons 
 alphabet.forEach(letter => {
   const btn = document.createElement("button");
@@ -81,7 +87,7 @@ function playTimeUpSound() {
   audio.play();
 }
 
-
+/*
 checkBtn.onclick = () => {
 
     const userAnswer = spellingInput.value.trim().toLowerCase();
@@ -102,6 +108,67 @@ checkBtn.onclick = () => {
 
     clearInterval(timer);
 };
+*/
+
+checkBtn.onclick = () => {
+  const userAnswer = spellingInput.value.trim().toLowerCase();
+  const correct = questions[currentQuestionIndex].word.toLowerCase();
+  const gridBtn = questionsGrid.children[currentQuestionIndex];
+
+  clearInterval(timer);
+
+  if (userAnswer === correct) {
+    feedback.textContent = "✅ Correct!";
+    playSound("correct");
+    gridBtn.disabled = true;
+    gridBtn.style.backgroundColor = "green";
+
+    if (contestStarted) {
+      participants[currentParticipant].score += 2;
+      nextParticipant();
+    }
+  } else {
+    feedback.textContent = "❌ Wrong!";
+    playSound("wrong");
+    gridBtn.style.backgroundColor = "red";
+
+    if (!contestStarted) return;
+
+    if (timeLeft <= 0) {
+      nextParticipant();
+    }
+  }
+
+  renderScoreboard();
+
+  // Check if all questions are completed
+  if ([...questionsGrid.children].every(btn => btn.disabled)) {
+    endContest();
+  }
+};
+
+function nextParticipant() {
+  currentParticipant = (currentParticipant + 1) % participants.length;
+}
+
+function endContest() {
+  contestStarted = false;
+  const maxScore = Math.max(...participants.map(p => p.score));
+  const winners = participants.filter(p => p.score === maxScore);
+
+  winners.forEach(p => {
+    const pDiv = [...scoreboard.children].find(div =>
+      div.textContent.includes(p.name)
+    );
+    if (pDiv) pDiv.style.background = "green", pDiv.style.color = "white";
+  });
+
+  setTimeout(() => {
+    speak(`Contest Over. Winner${winners.length > 1 ? 's are' : ' is'} ${winners.map(w => w.name).join(", ")}`);
+    alert(`🎉 Winner${winners.length > 1 ? 's' : ''}: ${winners.map(w => w.name).join(", ")}`);
+  }, 500);
+}
+
 
 
 document.getElementById("reset-btn").onclick = () => {
@@ -118,6 +185,42 @@ document.getElementById("reset-btn").onclick = () => {
     btn.style.backgroundColor = "";
   });
 };
+
+const startContestBtn = document.getElementById("start-contest-btn");
+const participantCountSelect = document.getElementById("participant-count");
+const scoreboard = document.getElementById("scoreboard");
+const resetScoresBtn = document.getElementById("reset-scores-btn");
+
+startContestBtn.onclick = () => {
+  const count = parseInt(participantCountSelect.value);
+  participants = Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    name: `P${i + 1}`,
+    score: 0
+  }));
+  currentParticipant = 0;
+  contestStarted = true;
+  renderScoreboard();
+};
+
+function renderScoreboard() {
+  scoreboard.innerHTML = "";
+  participants.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.className = "participant";
+    if (i === currentParticipant) div.classList.add("active");
+    div.innerHTML = `<strong>${p.name}</strong><br>Score: ${p.score}`;
+    scoreboard.appendChild(div);
+  });
+}
+
+resetScoresBtn.onclick = () => {
+  participants.forEach(p => p.score = 0);
+  currentParticipant = 0;
+  contestStarted = false;
+  renderScoreboard();
+};
+
 
 function playSound(type) {
   let audio;
@@ -139,5 +242,36 @@ function applauseSound(type) {
 }
 
 
-loadQuestions();
+const categorySelect = document.getElementById("category-select");
+
+async function loadCategories() {
+  const res = await fetch("/api/categories");
+  const cats = await res.json();
+
+  categorySelect.innerHTML = "";
+  cats.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat._id;
+    opt.textContent = cat.name;
+    categorySelect.appendChild(opt);
+
+    if (cat.isDefault) currentCategory = cat._id;
+  });
+
+  categorySelect.value = currentCategory;
+  loadQuestions(); // load questions after category loaded
+}
+
+categorySelect.onchange = () => {
+  currentCategory = categorySelect.value;
+  loadQuestions();
+};
+// loadQuestions();
+
+async function loadQuestions() {
+  const res = await fetch(`/api/questions?category=${currentCategory}`);
+  questions = await res.json();
+  renderQuestionGrid();
+}
+
 
