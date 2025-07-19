@@ -1,4 +1,4 @@
-// --- DOM Element References ---
+// ========== DOM Elements ==========
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ-".split("");
 const alphabetContainer = document.getElementById("alphabet");
 const questionDisplay = document.getElementById("current-question");
@@ -9,20 +9,26 @@ const definitionEl = document.getElementById("definition");
 const spellBtn = document.getElementById("spell-btn");
 const checkBtn = document.getElementById("check-btn");
 const questionsGrid = document.getElementById("questions-grid");
-const endContestBtn = document.getElementById("end-contest-btn"); // End Contest button
+const scoreboard = document.getElementById("scoreboard");
+const resetScoresBtn = document.getElementById("reset-scores-btn");
+const startContestBtn = document.getElementById("start-contest-btn");
+const participantCountSelect = document.getElementById("participant-count");
+const endContestBtn = document.getElementById("end-contest-btn"); // NEW
+const turnMessageEl = document.getElementById("turn-message");
+const categorySelect = document.getElementById("category-select");
 
-// --- Game State Variables ---
+// ========== State Variables ==========
 let questions = [];
 let currentQuestionIndex = -1;
 let timer;
 let timeLeft = 30;
-let timerRunning = false; // Prevent double clicks
 let currentCategory = "";
 let participants = [];
 let currentParticipant = 0;
 let contestStarted = false;
+let timerRunning = false; // NEW: Prevent multiple spell clicks
 
-// --- Initialize Alphabet Buttons A-Z ---
+// ========== Load Alphabet Buttons ==========
 alphabet.forEach(letter => {
   const btn = document.createElement("button");
   btn.textContent = letter;
@@ -33,20 +39,43 @@ alphabet.forEach(letter => {
   alphabetContainer.appendChild(btn);
 });
 
-// --- Speak helper function (pronounces word or letter) ---
+// ========== Speak helper function (pronounces word or letter) ==========
 function speak(text) {
   const msg = new SpeechSynthesisUtterance(text);
   window.speechSynthesis.speak(msg);
 }
 
-// --- Load and Render Questions from Current Category ---
+// ========== Load and Display Categories ==========
+async function loadCategories() {
+  const res = await fetch("/api/categories");
+  const cats = await res.json();
+
+  categorySelect.innerHTML = "";
+  cats.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat._id;
+    opt.textContent = cat.category_name;
+    categorySelect.appendChild(opt);
+    if (cat.isDefault) currentCategory = cat._id;
+  });
+
+  categorySelect.value = currentCategory;
+  await loadQuestions(); // Load questions after categories
+}
+
+categorySelect.onchange = () => {
+  currentCategory = categorySelect.value;
+  loadQuestions();
+};
+
+// ========== Load and Render Questions from Current Category ==========
 async function loadQuestions() {
   const res = await fetch(`/api/questions?category=${currentCategory}`);
   questions = await res.json();
   renderQuestionGrid();
 }
 
-// --- Render Question Buttons (Q1–Qn) Grid ---
+// ========== Render Question Number Buttons ==========
 function renderQuestionGrid() {
   questionsGrid.innerHTML = "";
   questions.forEach((q, i) => {
@@ -57,7 +86,7 @@ function renderQuestionGrid() {
   });
 }
 
-// --- When a question is selected ---
+// ========== Select Question and Show Details ==========
 function selectQuestion(index) {
   if (timerRunning) return; // prevent switching question mid-timer
   currentQuestionIndex = index;
@@ -66,28 +95,29 @@ function selectQuestion(index) {
   feedback.textContent = "";
   definitionEl.textContent = question.definition;
   questionDisplay.textContent = `Qn: ${index + 1}`;
-  speak(question.word);
+  speak(question.word); // Read word aloud
 }
 
-// --- Start Countdown Timer with Visual Fading ---
+// ========== Start Pronunciation + Timer ==========
+spellBtn.onclick = () => {
+  if (currentQuestionIndex === -1) return alert("Select a question!");
+  if (timerRunning) return; // Prevent multiple clicks
+  startTimer();
+  speak(questions[currentQuestionIndex].word);
+};
+
+// ========== Start Countdown Timer with Fade Effect ==========
 function startTimer() {
   if (timerRunning) return; // Prevent multiple clicks
   timeLeft = 30;
   timerEl.textContent = timeLeft;
+  timerEl.classList.add("fade"); // visual countdown effect
+
   timerRunning = true;
-
-  // Fade countdown effect
-  timerEl.classList.add("countdown-fade");
-  setTimeout(() => timerEl.classList.remove("countdown-fade"), 1000);
-
   clearInterval(timer);
   timer = setInterval(() => {
     timeLeft--;
     timerEl.textContent = timeLeft;
-
-    // Visual fading each second
-    timerEl.classList.add("countdown-fade");
-    setTimeout(() => timerEl.classList.remove("countdown-fade"), 500);
 
     if (timeLeft <= 0) {
       clearInterval(timer);
@@ -99,28 +129,16 @@ function startTimer() {
         participants[currentParticipant].score += 0;
         nextParticipant();
         renderScoreboard();
+        flashTurnMessage(`Now it's ${participants[currentParticipant].name}'s turn`);
       }
     }
   }, 1000);
 }
 
-// --- Time Up Sound Effect ---
-function playTimeUpSound() {
-  const audio = new Audio("/sounds/time-up.mp3");
-  audio.play();
-}
-
-// --- SPELL Button Click: Starts Timer and Speaks Word ---
-spellBtn.onclick = () => {
-  if (currentQuestionIndex === -1) return alert("Select a question!");
-  startTimer();
-  speak(questions[currentQuestionIndex].word);
-};
-
-// --- CHECK Button Click: Validates Answer ---
+// ========== Check User Answer ==========
 checkBtn.onclick = () => {
   if (timerRunning === false) return;
-
+  
   const userAnswer = spellingInput.value.trim().toLowerCase();
   const correct = questions[currentQuestionIndex].word.toLowerCase();
   const gridBtn = questionsGrid.children[currentQuestionIndex];
@@ -131,18 +149,18 @@ checkBtn.onclick = () => {
     feedback.textContent = "✅ Correct!";
     playSound("correct");
     applauseSound("applause");
-
     gridBtn.disabled = true;
     gridBtn.style.backgroundColor = "green";
 
     if (contestStarted) {
       participants[currentParticipant].score += 2;
       nextParticipant();
+      flashTurnMessage(`Now it's ${participants[currentParticipant].name}'s turn`);
     }
 
     renderScoreboard();
 
-    // End contest if all questions are answered
+    // Check if all questions are completed
     if ([...questionsGrid.children].every(btn => btn.disabled)) {
       endContest();
     }
@@ -153,56 +171,37 @@ checkBtn.onclick = () => {
   }
 };
 
-// --- Advance to Next Participant with Flash Message ---
-function nextParticipant() {
-  flashTurnMessage(`Switching turn to P${(currentParticipant + 1) % participants.length + 1}`);
-  currentParticipant = (currentParticipant + 1) % participants.length;
-}
-
-// --- Flash message between turns ---
+// ========== Flash Turn Change Message ==========
 function flashTurnMessage(message) {
-  const msgEl = document.getElementById("turn-message");
-  msgEl.textContent = message;
-  msgEl.classList.remove("hidden");
-  msgEl.classList.add("show");
-
+  turnMessageEl.textContent = message;
+  turnMessageEl.classList.remove("hidden");
+  turnMessageEl.classList.add("show");
   setTimeout(() => {
-    msgEl.classList.remove("show");
-    setTimeout(() => msgEl.classList.add("hidden"), 500);
+    turnMessageEl.classList.remove("show");
+    setTimeout(() => turnMessageEl.classList.add("hidden"), 500);
   }, 1500);
 }
 
-// --- Manually End Contest or Auto-End When All Done ---
-function endContest() {
-  contestStarted = false;
-  timerRunning = false;
-  clearInterval(timer);
-
-  const maxScore = Math.max(...participants.map(p => p.score));
-  const winners = participants.filter(p => p.score === maxScore);
-
-  // Highlight winner(s)
-  winners.forEach(p => {
-    const pDiv = [...scoreboard.children].find(div =>
-      div.textContent.includes(p.name)
-    );
-    if (pDiv) {
-      pDiv.style.background = "green";
-      pDiv.style.color = "white";
-    }
-  });
-
-  // Speak and Alert Winner(s)
-  setTimeout(() => {
-    speak(`Contest Over. Winner${winners.length > 1 ? 's are' : ' is'} ${winners.map(w => w.name).join(", ")}`);
-    alert(`🎉 Winner${winners.length > 1 ? 's' : ''}: ${winners.map(w => w.name).join(", ")}`);
-  }, 500);
+// ========== Move to Next Player ==========
+function nextParticipant() {
+  currentParticipant = (currentParticipant + 1) % participants.length;
 }
 
-// --- END Contest Button Event ---
-endContestBtn.onclick = endContest;
+// ========== Start Contest ==========
+startContestBtn.onclick = () => {
+  const count = parseInt(participantCountSelect.value);
+  participants = Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    name: `P${i + 1}`,
+    score: 0
+  }));
+  currentParticipant = 0;
+  contestStarted = true;
+  renderScoreboard();
+  flashTurnMessage(`Contest started! ${participants[currentParticipant].name}, you're up first!`);
+};
 
-// --- Reset Question & Timer UI ---
+// ========== Reset Button ==========
 document.getElementById("reset-btn").onclick = () => {
   spellingInput.value = "";
   feedback.textContent = "";
@@ -218,24 +217,7 @@ document.getElementById("reset-btn").onclick = () => {
   });
 };
 
-// --- Start Contest ---
-const startContestBtn = document.getElementById("start-contest-btn");
-const participantCountSelect = document.getElementById("participant-count");
-const scoreboard = document.getElementById("scoreboard");
-
-startContestBtn.onclick = () => {
-  const count = parseInt(participantCountSelect.value);
-  participants = Array.from({ length: count }, (_, i) => ({
-    id: i + 1,
-    name: `P${i + 1}`,
-    score: 0
-  }));
-  currentParticipant = 0;
-  contestStarted = true;
-  renderScoreboard();
-};
-
-// --- Display Participant Scores ---
+// ========== Render Player Scores ==========
 function renderScoreboard() {
   scoreboard.innerHTML = "";
   participants.forEach((p, i) => {
@@ -247,8 +229,7 @@ function renderScoreboard() {
   });
 }
 
-// --- Reset Scores Only ---
-const resetScoresBtn = document.getElementById("reset-scores-btn");
+// ========== Reset Scores ==========
 resetScoresBtn.onclick = () => {
   participants.forEach(p => p.score = 0);
   currentParticipant = 0;
@@ -256,11 +237,47 @@ resetScoresBtn.onclick = () => {
   renderScoreboard();
 };
 
-// --- Sound Effects ---
-function playSound(type) {
-  const audio = new Audio(`/sounds/${type}.mp3`);
-  audio.play();
+// ========== Manually End Contest ==========
+endContestBtn.onclick = () => {
+  endContest();
+};
+
+// ========== End Contest & Announce Winner(s) ==========
+function endContest() {
+  contestStarted = false;
+  clearInterval(timer);
+  timerRunning = false;
+
+  const maxScore = Math.max(...participants.map(p => p.score));
+  const winners = participants.filter(p => p.score === maxScore);
+
+  winners.forEach(p => {
+    const pDiv = [...scoreboard.children].find(div =>
+      div.textContent.includes(p.name)
+    );
+    if (pDiv) {
+      pDiv.style.background = "green";
+      pDiv.style.color = "white";
+    }
+  });
+
+  setTimeout(() => {
+    speak(`Contest Over. Winner${winners.length > 1 ? 's are' : ' is'} ${winners.map(w => w.name).join(", ")}`);
+    alert(`🎉 Winner${winners.length > 1 ? 's' : ''}: ${winners.map(w => w.name).join(", ")}`);
+  }, 500);
 }
+
+// ========== Sound Effects ==========
+function playSound(type) {
+  let audio;
+  if (type === "correct") {
+    audio = new Audio("/sounds/correct.mp3");
+  } else if (type === "wrong") {
+    audio = new Audio("/sounds/wrong.mp3");
+  }
+  if (audio) audio.play();
+}
+
 function applauseSound(type) {
   if (type === "applause") {
     const audio = new Audio("/sounds/applause.mp3");
@@ -268,33 +285,12 @@ function applauseSound(type) {
   }
 }
 
-// --- Load Categories Dropdown ---
-const categorySelect = document.getElementById("category-select");
-
-async function loadCategories() {
-  const res = await fetch("/api/categories");
-  const cats = await res.json();
-
-  categorySelect.innerHTML = "";
-  cats.forEach(cat => {
-    const opt = document.createElement("option");
-    opt.value = cat._id;
-    opt.textContent = cat.category_name;
-    categorySelect.appendChild(opt);
-    if (cat.isDefault) currentCategory = cat._id;
-  });
-
-  categorySelect.value = currentCategory;
-  loadQuestions();
+function playTimeUpSound() {
+  const audio = new Audio("/sounds/time-up.mp3");
+  audio.play();
 }
 
-// --- When category changes, reload questions ---
-categorySelect.onchange = () => {
-  currentCategory = categorySelect.value;
-  loadQuestions();
-};
-
-// --- On Page Load ---
+// ========== On Page Load ==========
 document.addEventListener("DOMContentLoaded", () => {
-  loadCategories();
+  loadCategories(); // loads categories and questions
 });
