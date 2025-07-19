@@ -141,3 +141,21 @@ table th, table td {
   background: #ffd700;
   font-weight: bold;
 }
+
+/* Turn message fade effect */
+#turn-message.hidden {
+  display: none;
+}
+#turn-message.show {
+  display: block;
+  font-weight: bold;
+  font-size: 1.2em;
+  animation: fadeInOut 2s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}

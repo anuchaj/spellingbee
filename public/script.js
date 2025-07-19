@@ -1,3 +1,4 @@
+// --- DOM Element References ---
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ-".split("");
 const alphabetContainer = document.getElementById("alphabet");
 const questionDisplay = document.getElementById("current-question");
@@ -8,19 +9,20 @@ const definitionEl = document.getElementById("definition");
 const spellBtn = document.getElementById("spell-btn");
 const checkBtn = document.getElementById("check-btn");
 const questionsGrid = document.getElementById("questions-grid");
+const endContestBtn = document.getElementById("end-contest-btn"); // End Contest button
 
+// --- Game State Variables ---
 let questions = [];
 let currentQuestionIndex = -1;
 let timer;
 let timeLeft = 30;
-
+let timerRunning = false; // Prevent double clicks
 let currentCategory = "";
 let participants = [];
 let currentParticipant = 0;
 let contestStarted = false;
 
-
-// Initialize A-Z buttons 
+// --- Initialize Alphabet Buttons A-Z ---
 alphabet.forEach(letter => {
   const btn = document.createElement("button");
   btn.textContent = letter;
@@ -31,20 +33,20 @@ alphabet.forEach(letter => {
   alphabetContainer.appendChild(btn);
 });
 
-// Speak helper
+// --- Speak helper function (pronounces word or letter) ---
 function speak(text) {
   const msg = new SpeechSynthesisUtterance(text);
   window.speechSynthesis.speak(msg);
 }
 
-// Load questions
+// --- Load and Render Questions from Current Category ---
 async function loadQuestions() {
-  const res = await fetch("/api/questions");
+  const res = await fetch(`/api/questions?category=${currentCategory}`);
   questions = await res.json();
   renderQuestionGrid();
 }
 
-// Render Q1–Qn Grid
+// --- Render Question Buttons (Q1–Qn) Grid ---
 function renderQuestionGrid() {
   questionsGrid.innerHTML = "";
   questions.forEach((q, i) => {
@@ -55,38 +57,46 @@ function renderQuestionGrid() {
   });
 }
 
+// --- When a question is selected ---
 function selectQuestion(index) {
+  if (timerRunning) return; // prevent switching question mid-timer
   currentQuestionIndex = index;
   const question = questions[index];
   spellingInput.value = "";
   feedback.textContent = "";
   definitionEl.textContent = question.definition;
   questionDisplay.textContent = `Qn: ${index + 1}`;
-  speak(question.word); // pronounce word on select
+  speak(question.word);
 }
 
-spellBtn.onclick = () => {
-  if (currentQuestionIndex === -1) return alert("Select a question!");
-  startTimer();
-  speak(questions[currentQuestionIndex].word);
-};
-
+// --- Start Countdown Timer with Visual Fading ---
 function startTimer() {
+  if (timerRunning) return; // Prevent multiple clicks
   timeLeft = 30;
   timerEl.textContent = timeLeft;
+  timerRunning = true;
 
-  clearInterval(timer); // Prevent multiple timers
+  // Fade countdown effect
+  timerEl.classList.add("countdown-fade");
+  setTimeout(() => timerEl.classList.remove("countdown-fade"), 1000);
+
+  clearInterval(timer);
   timer = setInterval(() => {
     timeLeft--;
     timerEl.textContent = timeLeft;
 
+    // Visual fading each second
+    timerEl.classList.add("countdown-fade");
+    setTimeout(() => timerEl.classList.remove("countdown-fade"), 500);
+
     if (timeLeft <= 0) {
       clearInterval(timer);
+      timerRunning = false;
       playTimeUpSound();
       feedback.textContent = "⏰ Time's up!";
 
       if (contestStarted) {
-        participants[currentParticipant].score += 0; // Explicit zero score
+        participants[currentParticipant].score += 0;
         nextParticipant();
         renderScoreboard();
       }
@@ -94,47 +104,34 @@ function startTimer() {
   }, 1000);
 }
 
-
-// function to play a “time’s up” sound
+// --- Time Up Sound Effect ---
 function playTimeUpSound() {
   const audio = new Audio("/sounds/time-up.mp3");
   audio.play();
 }
 
-/*
-checkBtn.onclick = () => {
-
-    const userAnswer = spellingInput.value.trim().toLowerCase();
-    const correct = questions[currentQuestionIndex].word.toLowerCase();
-    const gridBtn = questionsGrid.children[currentQuestionIndex];
-
-        if (userAnswer === correct) {
-            feedback.textContent = "✅ Correct!";
-            gridBtn.disabled = true;
-            gridBtn.style.backgroundColor = "green";
-            playSound("correct");
-            applauseSound("applause");
-        } else {
-            feedback.textContent = "❌ Wrong!";
-            gridBtn.style.backgroundColor = "red";
-            playSound("wrong");
-        }
-
-    clearInterval(timer);
+// --- SPELL Button Click: Starts Timer and Speaks Word ---
+spellBtn.onclick = () => {
+  if (currentQuestionIndex === -1) return alert("Select a question!");
+  startTimer();
+  speak(questions[currentQuestionIndex].word);
 };
-*/
 
-
+// --- CHECK Button Click: Validates Answer ---
 checkBtn.onclick = () => {
+  if (timerRunning === false) return;
+
   const userAnswer = spellingInput.value.trim().toLowerCase();
   const correct = questions[currentQuestionIndex].word.toLowerCase();
   const gridBtn = questionsGrid.children[currentQuestionIndex];
 
   if (userAnswer === correct) {
-    clearInterval(timer); // ✅ Stop only if correct
+    clearInterval(timer);
+    timerRunning = false;
     feedback.textContent = "✅ Correct!";
     playSound("correct");
     applauseSound("applause");
+
     gridBtn.disabled = true;
     gridBtn.style.backgroundColor = "green";
 
@@ -145,7 +142,7 @@ checkBtn.onclick = () => {
 
     renderScoreboard();
 
-    // Check if all questions are completed
+    // End contest if all questions are answered
     if ([...questionsGrid.children].every(btn => btn.disabled)) {
       endContest();
     }
@@ -153,60 +150,78 @@ checkBtn.onclick = () => {
     feedback.textContent = "❌ Wrong! Try again before time runs out.";
     playSound("wrong");
     gridBtn.style.backgroundColor = "red";
-
-    // DO NOT clearInterval(timer) here.
-    // Allow retries if time remains.
-    if (timeLeft <= 0 && contestStarted) {
-      nextParticipant();
-      renderScoreboard();
-    }
   }
 };
 
-
+// --- Advance to Next Participant with Flash Message ---
 function nextParticipant() {
+  flashTurnMessage(`Switching turn to P${(currentParticipant + 1) % participants.length + 1}`);
   currentParticipant = (currentParticipant + 1) % participants.length;
 }
 
+// --- Flash message between turns ---
+function flashTurnMessage(message) {
+  const msgEl = document.getElementById("turn-message");
+  msgEl.textContent = message;
+  msgEl.classList.remove("hidden");
+  msgEl.classList.add("show");
 
+  setTimeout(() => {
+    msgEl.classList.remove("show");
+    setTimeout(() => msgEl.classList.add("hidden"), 500);
+  }, 1500);
+}
+
+// --- Manually End Contest or Auto-End When All Done ---
 function endContest() {
   contestStarted = false;
+  timerRunning = false;
+  clearInterval(timer);
+
   const maxScore = Math.max(...participants.map(p => p.score));
   const winners = participants.filter(p => p.score === maxScore);
 
+  // Highlight winner(s)
   winners.forEach(p => {
     const pDiv = [...scoreboard.children].find(div =>
       div.textContent.includes(p.name)
     );
-    if (pDiv) pDiv.style.background = "green", pDiv.style.color = "white";
+    if (pDiv) {
+      pDiv.style.background = "green";
+      pDiv.style.color = "white";
+    }
   });
 
+  // Speak and Alert Winner(s)
   setTimeout(() => {
     speak(`Contest Over. Winner${winners.length > 1 ? 's are' : ' is'} ${winners.map(w => w.name).join(", ")}`);
     alert(`🎉 Winner${winners.length > 1 ? 's' : ''}: ${winners.map(w => w.name).join(", ")}`);
   }, 500);
 }
 
+// --- END Contest Button Event ---
+endContestBtn.onclick = endContest;
 
+// --- Reset Question & Timer UI ---
 document.getElementById("reset-btn").onclick = () => {
   spellingInput.value = "";
   feedback.textContent = "";
   definitionEl.textContent = "";
   questionDisplay.textContent = "Qn: -";
   clearInterval(timer);
+  timerRunning = false;
   timerEl.textContent = "30";
 
-  // Reset button colors and disable states
   [...questionsGrid.children].forEach(btn => {
     btn.disabled = false;
     btn.style.backgroundColor = "";
   });
 };
 
+// --- Start Contest ---
 const startContestBtn = document.getElementById("start-contest-btn");
 const participantCountSelect = document.getElementById("participant-count");
 const scoreboard = document.getElementById("scoreboard");
-const resetScoresBtn = document.getElementById("reset-scores-btn");
 
 startContestBtn.onclick = () => {
   const count = parseInt(participantCountSelect.value);
@@ -220,6 +235,7 @@ startContestBtn.onclick = () => {
   renderScoreboard();
 };
 
+// --- Display Participant Scores ---
 function renderScoreboard() {
   scoreboard.innerHTML = "";
   participants.forEach((p, i) => {
@@ -231,6 +247,8 @@ function renderScoreboard() {
   });
 }
 
+// --- Reset Scores Only ---
+const resetScoresBtn = document.getElementById("reset-scores-btn");
 resetScoresBtn.onclick = () => {
   participants.forEach(p => p.score = 0);
   currentParticipant = 0;
@@ -238,27 +256,19 @@ resetScoresBtn.onclick = () => {
   renderScoreboard();
 };
 
-
+// --- Sound Effects ---
 function playSound(type) {
-  let audio;
-  if (type === "correct") {
-    audio = new Audio("/sounds/correct.mp3");
-  } else if (type === "wrong") {
-    audio = new Audio("/sounds/wrong.mp3");
-  }
-  if (audio) audio.play();
+  const audio = new Audio(`/sounds/${type}.mp3`);
+  audio.play();
 }
-
-// This function can be combined with playSound() function
 function applauseSound(type) {
-  let audio2;
   if (type === "applause") {
-    audio2 = new Audio("/sounds/applause.mp3");
-  } 
-  if (audio2) audio2.play();
+    const audio = new Audio("/sounds/applause.mp3");
+    audio.play();
+  }
 }
 
-
+// --- Load Categories Dropdown ---
 const categorySelect = document.getElementById("category-select");
 
 async function loadCategories() {
@@ -271,29 +281,20 @@ async function loadCategories() {
     opt.value = cat._id;
     opt.textContent = cat.category_name;
     categorySelect.appendChild(opt);
-
     if (cat.isDefault) currentCategory = cat._id;
   });
 
   categorySelect.value = currentCategory;
-  loadQuestions(); // load questions after category loaded
+  loadQuestions();
 }
 
+// --- When category changes, reload questions ---
 categorySelect.onchange = () => {
   currentCategory = categorySelect.value;
   loadQuestions();
 };
-// loadQuestions();
 
-async function loadQuestions() {
-  const res = await fetch(`/api/questions?category=${currentCategory}`);
-  questions = await res.json();
-  renderQuestionGrid();
-}
-
-
-// Ensure category and questions load on page load
+// --- On Page Load ---
 document.addEventListener("DOMContentLoaded", () => {
   loadCategories();
 });
-
