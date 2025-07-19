@@ -66,20 +66,34 @@ function selectQuestion(index) {
 }
 
 spellBtn.onclick = () => {
-    if (currentQuestionIndex === -1) return alert("Select a question!");
-    timeLeft = 30;
-    timerEl.textContent = timeLeft;
-    timer = setInterval(() => {
-        timeLeft--;
-        timerEl.textContent = timeLeft;
-        if (timeLeft <= 0) {
-            clearInterval(timer);
-            playTimeUpSound();
-            feedback.textContent = "⏰ Time's up!";
-        }
-    }, 1000);
-    speak(questions[currentQuestionIndex].word);
+  if (currentQuestionIndex === -1) return alert("Select a question!");
+  startTimer();
+  speak(questions[currentQuestionIndex].word);
 };
+
+function startTimer() {
+  timeLeft = 30;
+  timerEl.textContent = timeLeft;
+
+  clearInterval(timer); // Prevent multiple timers
+  timer = setInterval(() => {
+    timeLeft--;
+    timerEl.textContent = timeLeft;
+
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      playTimeUpSound();
+      feedback.textContent = "⏰ Time's up!";
+
+      if (contestStarted) {
+        participants[currentParticipant].score += 0; // Explicit zero score
+        nextParticipant();
+        renderScoreboard();
+      }
+    }
+  }, 1000);
+}
+
 
 // function to play a “time’s up” sound
 function playTimeUpSound() {
@@ -110,16 +124,17 @@ checkBtn.onclick = () => {
 };
 */
 
+
 checkBtn.onclick = () => {
   const userAnswer = spellingInput.value.trim().toLowerCase();
   const correct = questions[currentQuestionIndex].word.toLowerCase();
   const gridBtn = questionsGrid.children[currentQuestionIndex];
 
-  clearInterval(timer);
-
   if (userAnswer === correct) {
+    clearInterval(timer); // ✅ Stop only if correct
     feedback.textContent = "✅ Correct!";
     playSound("correct");
+    applauseSound("applause");
     gridBtn.disabled = true;
     gridBtn.style.backgroundColor = "green";
 
@@ -127,29 +142,32 @@ checkBtn.onclick = () => {
       participants[currentParticipant].score += 2;
       nextParticipant();
     }
+
+    renderScoreboard();
+
+    // Check if all questions are completed
+    if ([...questionsGrid.children].every(btn => btn.disabled)) {
+      endContest();
+    }
   } else {
-    feedback.textContent = "❌ Wrong!";
+    feedback.textContent = "❌ Wrong! Try again before time runs out.";
     playSound("wrong");
     gridBtn.style.backgroundColor = "red";
 
-    if (!contestStarted) return;
-
-    if (timeLeft <= 0) {
+    // DO NOT clearInterval(timer) here.
+    // Allow retries if time remains.
+    if (timeLeft <= 0 && contestStarted) {
       nextParticipant();
+      renderScoreboard();
     }
   }
-
-  renderScoreboard();
-
-  // Check if all questions are completed
-  if ([...questionsGrid.children].every(btn => btn.disabled)) {
-    endContest();
-  }
 };
+
 
 function nextParticipant() {
   currentParticipant = (currentParticipant + 1) % participants.length;
 }
+
 
 function endContest() {
   contestStarted = false;
@@ -168,7 +186,6 @@ function endContest() {
     alert(`🎉 Winner${winners.length > 1 ? 's' : ''}: ${winners.map(w => w.name).join(", ")}`);
   }, 500);
 }
-
 
 
 document.getElementById("reset-btn").onclick = () => {
@@ -252,7 +269,7 @@ async function loadCategories() {
   cats.forEach(cat => {
     const opt = document.createElement("option");
     opt.value = cat._id;
-    opt.textContent = cat.name;
+    opt.textContent = cat.category_name;
     categorySelect.appendChild(opt);
 
     if (cat.isDefault) currentCategory = cat._id;
@@ -274,4 +291,9 @@ async function loadQuestions() {
   renderQuestionGrid();
 }
 
+
+// Ensure category and questions load on page load
+document.addEventListener("DOMContentLoaded", () => {
+  loadCategories();
+});
 
