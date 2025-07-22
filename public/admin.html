@@ -6,31 +6,94 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  
   <main class="admin-panel">
-    <h2>🧠 Spelling Bee Admin Panel</h2>
+    <!-- Include this at the top of <body> -->
+    <div id="user-info" style="padding: 10px; background: #eee;"></div>
 
-    <form id="question-form">
-      <input type="hidden" id="question-id" />
-      <input type="text" id="word" placeholder="Word" required />
-      <input type="text" id="definition" placeholder="Definition" required />
-      <button type="submit">Save Question</button>
-      <button type="button" id="cancel-edit" style="display:none;">Cancel</button>
-    </form>
+    <!-- Add your admin-specific content here -->
+    <div id="admin-section">
+      <!-- This section will be shown only to admins -->
+      <h2>🧠 Spelling Bee Admin Panel</h2>
 
-    <h3>All Questions</h3>
-    <table id="questions-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Word</th>
-          <th>Definition</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="question-list"></tbody>
-    </table>
+      <!-- Category Management Section -->
+      <section class="category-section">
+        <h3>📂 Manage Categories</h3>
+
+        <!-- Category Form -->
+        <form id="category-form">
+          <input type="hidden" id="category-id" />
+          <input type="text" id="category-name" placeholder="Category name" required />
+          <label>
+            <input type="checkbox" id="category-default" />
+            Default Category
+          </label>
+          <button type="submit">Save Category</button>
+          <button type="button" id="cancel-category-edit" style="display: none;">Cancel</button>
+        </form>
+
+        <!-- Category Table -->
+        <table id="category-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Default</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="category-list"></tbody>
+        </table>
+      </section>
+      
+      <hr>
+
+      <!-- Question Form -->
+      <h3>📂 Manage Questions</h3>
+      <form id="question-form">
+        <input type="hidden" id="question-id" />
+
+        <!-- Word input -->
+        <input type="text" id="word" placeholder="Word" required />
+
+        <!-- Definition input -->
+        <input type="text" id="definition" placeholder="Definition" required />
+
+        <!-- Category dropdown -->
+        <select id="category" name="category" required>
+          <option value="">Select a category</option> <!-- Placeholder -->
+        </select>
+
+        <!-- Submit and Cancel buttons -->
+        <button type="submit">Save Question</button>
+        <button type="button" id="cancel-edit" style="display:none;">Cancel</button>
+      </form>
+
+      <!-- Question Table -->
+      <h3>All Questions</h3>
+      <table id="questions-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Word</th>
+            <th>Definition</th>
+            <th>Category</th> <!-- Added category column -->
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="question-list"></tbody>
+      </table>
+
+    </div>
+
   </main>
 
+  <!-- Admin Script -->
   <script src="admin.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    protectAdminPage();     // block access if not admin
+    displayUserInfo();      // show current user info
+  </script>
 </body>
 </html>

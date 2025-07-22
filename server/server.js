@@ -4,9 +4,10 @@ const dotenv = require("dotenv");
 const path = require("path");
 const questionRoutes = require("./routes/questionRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
+const authRoutes = require("./routes/authRoutes");
 const cors = require('cors');
 
-dotenv.config();
+dotenv.config(); // Load .env
 const app = express();
 
 // Middleware
@@ -15,6 +16,9 @@ app.use(cors());
 
 // Static frontend
 app.use(express.static(path.join(__dirname, "../public")));
+
+// Auth
+app.use("/api/auth", authRoutes);
 
 // API routes
 app.use("/api/questions", questionRoutes);

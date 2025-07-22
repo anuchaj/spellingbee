@@ -35,17 +35,23 @@ const getQuestions = async (req, res) => {
   }
 };
 
-
-
 // POST new question
 const addQuestion = async (req, res) => {
+  console.log("🔥 addQuestion called"); // ← ensure function is triggered
+  console.log("📥 [addQuestion] Function called");
+  console.log("📦 [addQuestion] Incoming body:", req.body); // <-- Most important!
+
   try {
-    const { word, definition } = req.body;
-    const newQ = new Question({ word, definition });
-    await newQ.save();
-    res.status(201).json(newQ);
+    console.log("📦 Incoming body:", req.body); // ← this should show the payload
+
+    const { word, definition, category } = req.body;
+    const newQuestion = new Question({ word, definition, category });
+    await newQuestion.save();
+
+    res.status(201).json(newQuestion);
   } catch (err) {
-    res.status(400).json({ error: "Invalid data." });
+    console.error("❌ Error saving question:", err);
+    res.status(400).json({ error: "Failed to save question." });
   }
 };
 
