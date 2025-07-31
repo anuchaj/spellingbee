@@ -1,17 +1,44 @@
+// server/middleware/authMiddleware.js
+
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = process.env.JWT_SECRET || "yoursecretkey";
+const User = require("../models/User");
 
-exports.requireAdmin = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "No token" });
-
+// Middleware to check if user is authenticated
+const isAuth = async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    if (decoded.account_type !== "admin") return res.status(403).json({ error: "Access denied" });
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
-    req.user = decoded;
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    req.user = await User.findById(decoded.id).select("-password");
+    if (!req.user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
     next();
-  } catch {
-    res.status(401).json({ error: "Invalid token" });
+  } catch (err) {
+    console.error("Auth error:", err);
+    res.status(401).json({ message: "Invalid or expired token" });
   }
+};
+
+// Middleware to check if user is admin
+const isAdmin = (req, res, next) => {
+  if (req.user && req.user.account_type === "admin") {
+    next();
+  } else {
+    res.status(403).json({ message: "Admin access required" });
+  }
+};
+
+const requireAdmin = [isAuth, isAdmin];
+
+module.exports = {
+  isAuth,
+  isAdmin,
+  requireAdmin,
 };

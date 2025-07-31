@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Account | SpellingBee</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html">Home</a>
+    <span id="welcome-name"></span>
+    <a href="admin.html" id="admin-link" style="display:none;">Admin Panel</a>
+    <button id="logout-btn">Logout</button>
+  </nav>
+
+  <main class="account-section">
+    <h2>My Account</h2>
+    <div id="user-info">
+      <p><strong>First Name:</strong> <span id="first-name"></span></p>
+      <p><strong>Last Name:</strong> <span id="last-name"></span></p>
+      <p><strong>Email:</strong> <span id="user-email"></span></p>
+    </div>
+
+    <h3>Update Details</h3>
+    <form id="update-form">
+      <input type="text" id="new-firstname" placeholder="New First Name" required />
+      <input type="text" id="new-lastname" placeholder="New Last Name" required />
+      <input type="password" id="new-password" placeholder="New Password" required />
+      <button type="submit">Update</button>
+    </form>
+
+    <p id="update-msg" style="color: green;"></p>
+    <p id="update-error" style="color: red;"></p>
+  </main>
+
+  <script src="auth.js"></script>
+  <script>
+    async function loadAccount() {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        window.location.href = "login.html?redirect=myaccount.html";
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("Unauthorized");
+
+        const user = await res.json();
+        const [first, last] = user.name.split(" ");
+        document.getElementById("first-name").innerText = first || "";
+        document.getElementById("last-name").innerText = last || "";
+        document.getElementById("user-email").innerText = user.email || "";
+        document.getElementById("welcome-name").innerText = `Welcome, ${first || user.name}`;
+
+        if (user.account_type === "admin") {
+          document.getElementById("admin-link").style.display = "inline-block";
+        }
+      } catch (err) {
+        console.error(err);
+        localStorage.removeItem("token");
+        window.location.href = "login.html?redirect=myaccount.html";
+      }
+    }
+
+    // Update name and password
+    document.getElementById("update-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const name = `${document.getElementById("new-firstname").value.trim()} ${document.getElementById("new-lastname").value.trim()}`;
+      const password = document.getElementById("new-password").value;
+
+      try {
+        const res = await fetch("/api/auth/update", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ name, password })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById("update-msg").innerText = "Account updated successfully.";
+        } else {
+          document.getElementById("update-error").innerText = data.message || "Update failed.";
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("update-error").innerText = "Error updating account.";
+      }
+    });
+
+    // Logout
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    });
+
+    // Load user info on page load
+    loadAccount();
+  </script>
+</body>
+</html>

@@ -17,6 +17,7 @@ function getToken() {
   return localStorage.getItem("token");
 }
 
+
 // Remove auth data (logout)
 function clearAuthData() {
   localStorage.removeItem("token");
@@ -54,15 +55,16 @@ function storeUserSession(token, account_type) {
   localStorage.setItem("account_type", account_type);
 }
 
-// Get token
-function getToken() {
-  return localStorage.getItem("token");
-}
 
 // Check if logged in
-function isLoggedIn() {
-  return !!getToken();
+//function isLoggedIn() {
+  //return !!getToken();
+//}
+if (!isLoggedIn()) {
+  const currentPage = window.location.pathname;
+  window.location.href = `login.html?redirect=${encodeURIComponent(currentPage)}`;
 }
+
 
 // Check admin access
 function isAdmin() {
@@ -94,10 +96,22 @@ document.getElementById("login-form")?.addEventListener("submit", async (e) => {
     });
 
     const data = await res.json();
+
     if (res.ok) {
       storeUserSession(data.token, data.user.account_type);
       alert("Login successful!");
+      window.location.href = data.user.account_type === "admin" ? "admin.html" : "index.html";
+
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get("redirect") || "index.html";
+      window.location.href = redirectTo;
+
+      /* if (res.ok) {
+      storeUserSession(data.token, data.user.account_type);
+      alert("Login successful!");
       window.location.href = "index.html"; // or redirect to admin.html if admin
+      }*/
+    
     } else {
       document.getElementById("login-error").innerText = data.message || "Login failed.";
     }
@@ -124,7 +138,10 @@ document.getElementById("signup-form")?.addEventListener("submit", async (e) => 
     if (res.ok) {
       storeUserSession(data.token, data.user.account_type);
       alert("Signup successful!");
-      window.location.href = "index.html";
+      // window.location.href = "index.html";
+      const redirectTo = document.getElementById("redirectTo")?.value || "index.html";
+      window.location.href = redirectTo;
+
     } else {
       document.getElementById("signup-error").innerText = data.message || "Signup failed.";
     }

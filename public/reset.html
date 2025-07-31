@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Password Reset | SpellingBee</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="auth-form">
+    <h2>Reset Password</h2>
+    <form id="reset-form">
+      <input type="email" id="reset-email" placeholder="Enter your email" required />
+      <button type="submit">Send Reset Link</button>
+    </form>
+    <p id="reset-message" style="color: green;"></p>
+    <p id="reset-error" style="color: red;"></p>
+  </main>
+  <script>
+    document.getElementById("reset-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("reset-email").value.trim();
+
+      try {
+        const res = await fetch("/api/auth/reset", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById("reset-message").innerText = data.message || "Reset link sent to your email.";
+        } else {
+          document.getElementById("reset-error").innerText = data.message || "Failed to send reset link.";
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>

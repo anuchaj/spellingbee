@@ -1,3 +1,5 @@
+//categoryRoutes.js
+
 const express = require("express");
 const router = express.Router();
 const { requireAdmin } = require("../middleware/authMiddleware");

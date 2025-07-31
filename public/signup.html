@@ -12,11 +12,20 @@
       <input type="text" id="name" placeholder="Full Name" required />
       <input type="email" id="email" placeholder="Email" required />
       <input type="password" id="password" placeholder="Password" required />
+      <!-- Add this line inside the form before the button -->
+      <input type="hidden" id="redirectTo" name="redirectTo" />
       <button type="submit">Sign Up</button>
     </form>
     <p>Already have an account? <a href="login.html">Log in here</a></p>
     <p id="signup-error" style="color: red;"></p>
   </main>
   <script src="auth.js"></script>
+  <script>
+    // Extract redirect target from URL (e.g. ?redirect=myaccount.html)
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get("redirect") || "index.html";
+    document.getElementById("redirectTo").value = redirect;
+  </script>
+
 </body>
 </html>
