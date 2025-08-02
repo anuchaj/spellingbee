@@ -42,7 +42,7 @@
     <nav>
       <div class="nav-left">
         <a href="index.html">Home</a>
-        <a href="myaccount.html" id="my-account-link">My Account</a>
+        <a href="#" id="my-account-link">My Account</a>
       </div>
       <div class="nav-right">
         <a href="#" id="login-logout-link">Login</a>
@@ -120,11 +120,13 @@
 
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
-        return payload;
+        const isExpired = payload.exp * 1000 < Date.now();
+        return isExpired ? null : payload;
       } catch (e) {
         return null;
       }
     }
+
 
     // Update nav bar based on login status
     function updateNavLinks() {
@@ -142,18 +144,18 @@
 
         myAccountLink.onclick = (e) => {
           e.preventDefault();
-          window.location.href = "account.html";
+          window.location.href = "myaccount.html";
         };
       } else {
         // User not logged in
         loginLogoutLink.textContent = "Login";
         loginLogoutLink.onclick = () => {
-          window.location.href = "login.html?redirect=account.html";
+          window.location.href = "login.html";
         };
 
         myAccountLink.onclick = (e) => {
           e.preventDefault();
-          window.location.href = "login.html?redirect=account.html";
+          window.location.href = "login.html?redirect=myaccount.html";
         };
       }
     }
@@ -164,6 +166,11 @@
   <script src="auth.js"></script>
   <script>
     displayUserInfo(); // Run this after auth.js is loaded
+
+    // BUT ensure you're actually calling updateNavLinks() *after* DOM load.
+    document.addEventListener("DOMContentLoaded", () => {
+      updateNavLinks();
+    });
   </script>
 </body>
 </html>

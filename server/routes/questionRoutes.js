@@ -1,4 +1,4 @@
-//questionRoutes.js
+//server/routes/questionRoutes.js
 
 const express = require("express");
 const router = express.Router();

@@ -1,4 +1,4 @@
-// auth.js
+// public/auth.js
 
 // Save token + user to localStorage
 function saveAuthData(token, user) {
@@ -17,21 +17,11 @@ function getToken() {
   return localStorage.getItem("token");
 }
 
-
 // Remove auth data (logout)
 function clearAuthData() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
-  window.location.href = "/login.html"; // Redirect on logout
-}
-
-// Protect admin page
-function protectAdminPage() {
-  const user = getAuthUser();
-  if (!user || user.account_type !== "admin") {
-    alert("Access denied. Admins only.");
-    window.location.href = "/login.html";
-  }
+  window.location.href = "/index.html"; // Redirect on logout
 }
 
 // Display user info (call this in nav/header)
@@ -48,39 +38,33 @@ function displayUserInfo() {
   }
 }
 
-
 // Store token and role
-function storeUserSession(token, account_type) {
+function storeUserSession(token, account_type, user) {
   localStorage.setItem("token", token);
   localStorage.setItem("account_type", account_type);
+  localStorage.setItem("user", JSON.stringify(user));
 }
-
 
 // Check if logged in
-//function isLoggedIn() {
-  //return !!getToken();
-//}
-if (!isLoggedIn()) {
-  const currentPage = window.location.pathname;
-  window.location.href = `login.html?redirect=${encodeURIComponent(currentPage)}`;
+function isLoggedIn() {
+  return !!getToken();
 }
-
 
 // Check admin access
 function isAdmin() {
   return localStorage.getItem("account_type") === "admin";
 }
 
-// Protect admin page
-if (window.location.pathname.includes("admin.html")) {
-  if (!isLoggedIn()) {
-    alert("You must log in to access this page.");
-    window.location.href = "login.html";
-  } else if (!isAdmin()) {
+// Unified admin access check:
+document.addEventListener("DOMContentLoaded", () => {
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (location.pathname.includes("admin.html") && (!token || user?.account_type !== "admin")) {
     alert("Access denied. Admins only.");
-    window.location.href = "login.html";
+    window.location.href = "index.html";
   }
-}
+});
+
 
 // Handle login
 document.getElementById("login-form")?.addEventListener("submit", async (e) => {
@@ -96,22 +80,10 @@ document.getElementById("login-form")?.addEventListener("submit", async (e) => {
     });
 
     const data = await res.json();
-
     if (res.ok) {
-      storeUserSession(data.token, data.user.account_type);
-      alert("Login successful!");
-      window.location.href = data.user.account_type === "admin" ? "admin.html" : "index.html";
-
-      const params = new URLSearchParams(window.location.search);
-      const redirectTo = params.get("redirect") || "index.html";
-      window.location.href = redirectTo;
-
-      /* if (res.ok) {
-      storeUserSession(data.token, data.user.account_type);
+      storeUserSession(data.token, data.user.account_type, data.user);
       alert("Login successful!");
       window.location.href = "index.html"; // or redirect to admin.html if admin
-      }*/
-    
     } else {
       document.getElementById("login-error").innerText = data.message || "Login failed.";
     }
@@ -136,12 +108,9 @@ document.getElementById("signup-form")?.addEventListener("submit", async (e) => 
 
     const data = await res.json();
     if (res.ok) {
-      storeUserSession(data.token, data.user.account_type);
+      storeUserSession(data.token, data.user.account_type, data.user);
       alert("Signup successful!");
-      // window.location.href = "index.html";
-      const redirectTo = document.getElementById("redirectTo")?.value || "index.html";
-      window.location.href = redirectTo;
-
+      window.location.href = "login.html";
     } else {
       document.getElementById("signup-error").innerText = data.message || "Signup failed.";
     }
@@ -150,3 +119,53 @@ document.getElementById("signup-form")?.addEventListener("submit", async (e) => 
   }
 });
 
+
+// On myaccount.html page, load profile info
+function loadProfileInfo() {
+  const user = getAuthUser();
+
+  const parts = user.name.trim().split(" ");
+  const first = parts[0];
+  const last = parts.slice(1).join(" ") || "";
+  document.getElementById("first-name").innerText = first || "";
+  document.getElementById("last-name").innerText = last || "";
+  document.getElementById("user-email").innerText = user.email || "";
+  document.getElementById("welcome-name").innerText = `Welcome, ${first || user.name}`;
+
+  if (user.account_type === "admin") {
+    document.getElementById("admin-link").style.display = "inline-block";
+  } else {
+    document.getElementById("admin-link").style.display = "none";
+  }
+} 
+
+// Update name and password
+document.getElementById("update-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  const name = `${document.getElementById("new-firstname").value.trim()} ${document.getElementById("new-lastname").value.trim()}`;
+  const password = document.getElementById("new-password").value;
+
+  try {
+    const res = await fetch("/api/auth/update", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ name, password })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      document.getElementById("update-msg").innerText = "Account updated successfully.";
+    } else {
+      document.getElementById("update-error").innerText = data.message || "Update failed.";
+    }
+  } catch (err) {
+    console.error(err);
+    document.getElementById("update-error").innerText = "Error updating account.";
+  }
+});

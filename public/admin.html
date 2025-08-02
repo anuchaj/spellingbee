@@ -1,3 +1,5 @@
+<!-- public/admin.html file -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,6 +10,8 @@
 <body>
   
   <main class="admin-panel">
+    <a href="index.html">Home</a>
+    
     <!-- Include this at the top of <body> -->
     <div id="user-info" style="padding: 10px; background: #eee;"></div>
 
@@ -92,7 +96,7 @@
   <script src="admin.js"></script>
   <script src="auth.js"></script>
   <script>
-    protectAdminPage();     // block access if not admin
+    // protectAdminPage();     // block access if not admin
     displayUserInfo();      // show current user info
   </script>
 </body>

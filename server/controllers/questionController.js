@@ -1,3 +1,5 @@
+// controllers/questionController.js file 
+
 //const fs = require("fs");
 //const path = require("path");
 const Question = require("../models/question");

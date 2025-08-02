@@ -1,3 +1,5 @@
+// public/admin.js file
+
 const API_URL = "/api/questions";
 //const CATEGORY_API = "/api/categories/all";
 const CATEGORY_API = "/api/categories";
@@ -78,7 +80,10 @@ form.onsubmit = async (e) => {
 
   await fetch(url, {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${localStorage.getItem("token")}` 
+    },
     body: JSON.stringify({ word, definition, category }),
   });
 
@@ -177,7 +182,10 @@ categoryForm.onsubmit = async (e) => {
   try {
     await fetch(url, {
       method,
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`  
+      },
       body: JSON.stringify({ category_name: name, isDefault }),
     });
 
@@ -209,7 +217,13 @@ function resetCategoryForm() {
 async function deleteCategory(id) {
   if (confirm("Delete this category?")) {
     try {
-      await fetch(`${CATEGORY_API}/${id}`, { method: "DELETE" });
+      await fetch(`${CATEGORY_API}/${id}`, 
+        { method: "DELETE", 
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token")}`  
+          }
+        });
       await refreshCategories();
     } catch (err) {
       console.error("Failed to delete category", err);

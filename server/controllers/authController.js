@@ -64,3 +64,41 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Login failed" });
   }
 };
+
+// @desc    Update user name/password
+// @route   PUT /api/auth/update
+// @access  Private
+exports.updateProfile = async (req, res) => {
+  const { name, password } = req.body;
+
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (name) user.name = name;
+    if (password) user.password = password;
+
+    await user.save();
+
+    res.status(200).json({ message: "Profile updated" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Update failed" });
+  }
+};
+
+
+// ✅ Add getProfile controller
+exports.getProfile = async (req, res) => {
+  try {
+    const user = req.user; // Already fetched by isAuth middleware
+    res.json({
+      name: user.name,
+      email: user.email,
+      account_type: user.account_type,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
