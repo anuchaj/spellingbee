@@ -19,7 +19,7 @@ const categorySelect = document.getElementById("category-select"); // Dropdown f
 const correctSpelling = document.getElementById("answer-correct");
 
 // ========== Add Socket.IO Connection ==========
-const socket = io(); // Automatically connects to server
+// const socket = io(); // Automatically connects to server
 
 
 // ========== State Variables ==========
@@ -177,11 +177,13 @@ function checkAnswer() {
   }
 
   // ✅ Emit Events for Actions
+  /* 
   socket.emit("answerChecked", {
     participant: participants[currentParticipant],
     correct: userAnswer2 === correct2,
     questionIndex: currentQuestionIndex
   });
+  */
 
 }
 
@@ -219,11 +221,13 @@ checkBtn.onclick = () => {
   }
 
   // ✅ Emit Events for Actions
+  /*
   socket.emit("answerChecked", {
     participant: participants[currentParticipant],
     correct: userAnswer === correct,
     questionIndex: currentQuestionIndex
   });
+  */
 
 };
 
@@ -261,7 +265,7 @@ startContestBtn.onclick = () => {
   endContestBtn.style.display = "inline-block";
 
   // 🔥 Emit to server
-  socket.emit("contestStarted", { participants });
+  // socket.emit("contestStarted", { participants });
 };
 
 // ========== Reset Button ==========
@@ -336,7 +340,7 @@ function endContest() {
   }, 500);
 
   // ✅ Emit Events for Actions
-  socket.emit("contestEnded", { participants });
+  // socket.emit("contestEnded", { participants });
 
 }
 
@@ -367,6 +371,7 @@ function playTimeUpSound() {
 // ✅ Listen for Server Updates
 
 // ========== Socket Event Listeners ==========
+/*
 socket.on("contestStarted", (data) => {
   participants = data.participants;
   currentParticipant = 0;
@@ -388,7 +393,7 @@ socket.on("contestEnded", (data) => {
   participants = data.participants;
   endContest();
 });
-
+*/
 
 // ========== On Page Load ==========
 document.addEventListener("DOMContentLoaded", () => {
