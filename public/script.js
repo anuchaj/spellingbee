@@ -1,4 +1,4 @@
-// ========== DOM Elements ==========
+// ========== DOM Elements or constants ==========
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ-".split(""); // Array of alphabet letters and hyphen
 const alphabetContainer = document.getElementById("alphabet"); // Container for alphabet buttons
 const questionDisplay = document.getElementById("current-question"); // Display for current question number
@@ -17,6 +17,10 @@ const endContestBtn = document.getElementById("end-contest-btn"); // Button to e
 const turnMessageEl = document.getElementById("turn-message"); // Display for turn change messages
 const categorySelect = document.getElementById("category-select"); // Dropdown for category selection
 const correctSpelling = document.getElementById("answer-correct");
+
+// ========== Add Socket.IO Connection ==========
+const socket = io(); // Automatically connects to server
+
 
 // ========== State Variables ==========
 let questions = []; // Array to store questions
@@ -156,7 +160,7 @@ function checkAnswer() {
     applauseSound("applause"); // Play applause sound
     gridBtn2.disabled = true; // Disable question button
     gridBtn2.style.backgroundColor = "green"; // Mark button green
-    correctSpelling.innerHTML = correct.toUpperCase();
+    //correctSpelling.innerHTML = correct2.toUpperCase();
 
     if (contestStarted) { // If contest is active
       participants[currentParticipant].score += 2; // Add points
@@ -171,6 +175,14 @@ function checkAnswer() {
     gridBtn2.style.backgroundColor = "red"; // Mark button red
     gridBtn2.disabled = true; // Disable question button
   }
+
+  // ✅ Emit Events for Actions
+  socket.emit("answerChecked", {
+    participant: participants[currentParticipant],
+    correct: userAnswer2 === correct2,
+    questionIndex: currentQuestionIndex
+  });
+
 }
 
 
@@ -205,6 +217,14 @@ checkBtn.onclick = () => {
     gridBtn.style.backgroundColor = "red"; // Mark button red
     gridBtn.disabled = true; // Disable question button
   }
+
+  // ✅ Emit Events for Actions
+  socket.emit("answerChecked", {
+    participant: participants[currentParticipant],
+    correct: userAnswer === correct,
+    questionIndex: currentQuestionIndex
+  });
+
 };
 
 // ========== Flash Turn Change Message ==========
@@ -239,6 +259,9 @@ startContestBtn.onclick = () => {
 
   // ✅ Show End Contest button
   endContestBtn.style.display = "inline-block";
+
+  // 🔥 Emit to server
+  socket.emit("contestStarted", { participants });
 };
 
 // ========== Reset Button ==========
@@ -311,6 +334,10 @@ function endContest() {
     speak(`Contest Over. Winner${winners.length > 1 ? 's are' : ' is'} ${winners.map(w => w.name).join(", ")}`); // Speak winner(s)
     alert(`🎉 Winner${winners.length > 1 ? 's' : ''}: ${winners.map(w => w.name).join(", ")}`); // Show winner alert
   }, 500);
+
+  // ✅ Emit Events for Actions
+  socket.emit("contestEnded", { participants });
+
 }
 
 // ========== Sound Effects ==========
@@ -335,6 +362,33 @@ function playTimeUpSound() {
   const audio = new Audio("/sounds/time-up.mp3"); // Time-up sound
   audio.play(); // Play time-up sound
 }
+
+
+// ✅ Listen for Server Updates
+
+// ========== Socket Event Listeners ==========
+socket.on("contestStarted", (data) => {
+  participants = data.participants;
+  currentParticipant = 0;
+  contestStarted = true;
+  renderScoreboard();
+  flashTurnMessage(`Contest started! ${participants[currentParticipant].name}, you're up first!`);
+  endContestBtn.style.display = "inline-block";
+});
+
+socket.on("answerChecked", (data) => {
+  // Update participants and UI from server-side validation
+  participants = data.participants;
+  currentParticipant = data.nextParticipant;
+  renderScoreboard();
+  flashTurnMessage(`Now it's ${participants[currentParticipant].name}'s turn`);
+});
+
+socket.on("contestEnded", (data) => {
+  participants = data.participants;
+  endContest();
+});
+
 
 // ========== On Page Load ==========
 document.addEventListener("DOMContentLoaded", () => {

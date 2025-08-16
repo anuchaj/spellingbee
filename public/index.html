@@ -99,7 +99,9 @@
     @2025 JMESYS Group
   </footer>
 
+  
   <!-- ===== SCRIPTS ===== -->
+
   <script>
     // Utility function to get user from token
     function getLoggedInUser() {
@@ -148,6 +150,10 @@
     });
   </script>
 
+  <!-- Load Socket.IO client from server -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Then load app scripts -->
   <script src="script.js"></script>
   <script src="auth.js"></script>
 
