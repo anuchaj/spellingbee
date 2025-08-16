@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   account_type: {
     type: String,
-    enum: ["admin", "student"],
+    enum: ["admin", "student", "participant", "moderator"],
     default: "student",
   },
 }, { timestamps: true });

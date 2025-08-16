@@ -16,6 +16,7 @@ const participantCountSelect = document.getElementById("participant-count"); // 
 const endContestBtn = document.getElementById("end-contest-btn"); // Button to end contest
 const turnMessageEl = document.getElementById("turn-message"); // Display for turn change messages
 const categorySelect = document.getElementById("category-select"); // Dropdown for category selection
+const correctSpelling = document.getElementById("answer-correct");
 
 // ========== State Variables ==========
 let questions = []; // Array to store questions
@@ -27,6 +28,7 @@ let participants = []; // Array to store participant data
 let currentParticipant = 0; // Index of current participant
 let contestStarted = false; // Flag to track if contest is active
 let timerRunning = false; // Flag to prevent multiple spell clicks
+let correctWord = "";
 
 // ========== Load Alphabet Buttons ==========
 alphabet.forEach(letter => {
@@ -92,6 +94,8 @@ function selectQuestion(index) {
   if (timerRunning) return; // Prevent switching question during timer
   currentQuestionIndex = index; // Set current question index
   const question = questions[index]; // Get question data
+  correctWord = questions[currentQuestionIndex].word;
+  correctSpelling.textContent = ""; //Clear correct answer
   spellingInput.value = ""; // Clear input field
   feedback.textContent = ""; // Clear feedback
   definitionEl.textContent = question.definition; // Display definition
@@ -111,20 +115,22 @@ spellBtn.onclick = () => {
 function startTimer() {
   if (timerRunning) return; // Prevent multiple timers
   timeLeft = 30; // Reset time
-  timerEl.textContent = timeLeft; // Update timer display
+  timerEl.textContent = `Timer: ${timeLeft}`; // Update timer display
   timerEl.classList.add("fade"); // Add fade effect
 
   timerRunning = true; // Set timer running flag
   clearInterval(timer); // Clear any existing timer
   timer = setInterval(() => { // Start new timer
     timeLeft--; // Decrease time
-    timerEl.textContent = timeLeft; // Update display
+    timerEl.textContent = `Timer: ${timeLeft}`; // Update display
 
     if (timeLeft <= 0) { // If time runs out
+      correctSpelling.textContent = correctWord;
       clearInterval(timer); // Stop timer
       timerRunning = false; // Reset timer flag
       playTimeUpSound(); // Play time-up sound
       feedback.textContent = "⏰ Time's up!"; // Show time-up message
+      checkAnswer(); //Automatically check answer
 
       if (contestStarted) { // If contest is active
         participants[currentParticipant].score += 0; // No points for time-out
@@ -135,6 +141,38 @@ function startTimer() {
     }
   }, 1000); // Run every second
 }
+
+// Separate function to check answer
+function checkAnswer() {
+  const userAnswer2 = spellingInput.value.trim().toLowerCase(); // Get user input
+  const correct2 = questions[currentQuestionIndex].word.toLowerCase(); // Get correct answer
+  const gridBtn2 = questionsGrid.children[currentQuestionIndex]; // Get question button
+
+  if (userAnswer2 === correct2) { // If answer is correct
+    clearInterval(timer); // Stop timer
+    timerRunning = false; // Reset timer flag
+    feedback.textContent = "✅ Correct!"; // Show correct feedback
+    playSound("correct"); // Play correct sound
+    applauseSound("applause"); // Play applause sound
+    gridBtn2.disabled = true; // Disable question button
+    gridBtn2.style.backgroundColor = "green"; // Mark button green
+    correctSpelling.innerHTML = correct.toUpperCase();
+
+    if (contestStarted) { // If contest is active
+      participants[currentParticipant].score += 2; // Add points
+      nextParticipant(); // Move to next participant
+      flashTurnMessage(`Now it's ${participants[currentParticipant].name}'s turn`); // Show turn message
+    }
+
+    renderScoreboard(); // Update scoreboard
+  } else { // If answer is wrong
+    feedback.textContent = "❌ Wrong! Try again before time runs out."; // Show wrong feedback
+    playSound("wrong"); // Play wrong sound
+    gridBtn2.style.backgroundColor = "red"; // Mark button red
+    gridBtn2.disabled = true; // Disable question button
+  }
+}
+
 
 // ========== Check User Answer ==========
 checkBtn.onclick = () => {
@@ -152,6 +190,7 @@ checkBtn.onclick = () => {
     applauseSound("applause"); // Play applause sound
     gridBtn.disabled = true; // Disable question button
     gridBtn.style.backgroundColor = "green"; // Mark button green
+    correctSpelling.innerHTML = correct.toUpperCase();
 
     if (contestStarted) { // If contest is active
       participants[currentParticipant].score += 2; // Add points
@@ -164,6 +203,7 @@ checkBtn.onclick = () => {
     feedback.textContent = "❌ Wrong! Try again before time runs out."; // Show wrong feedback
     playSound("wrong"); // Play wrong sound
     gridBtn.style.backgroundColor = "red"; // Mark button red
+    gridBtn.disabled = true; // Disable question button
   }
 };
 
@@ -185,6 +225,7 @@ function nextParticipant() {
 
 // ========== Start Contest ==========
 startContestBtn.onclick = () => {
+  startContestBtn.disabled = true; // Disable Start button
   const count = parseInt(participantCountSelect.value); // Get participant count
   participants = Array.from({ length: count }, (_, i) => ({ // Initialize participants
     id: i + 1,
@@ -195,6 +236,9 @@ startContestBtn.onclick = () => {
   contestStarted = true; // Set contest flag
   renderScoreboard(); // Update scoreboard
   flashTurnMessage(`Contest started! ${participants[currentParticipant].name}, you're up first!`); // Show start message
+
+  // ✅ Show End Contest button
+  endContestBtn.style.display = "inline-block";
 };
 
 // ========== Reset Button ==========
@@ -202,10 +246,11 @@ document.getElementById("reset-btn").onclick = () => {
   spellingInput.value = ""; // Clear input
   feedback.textContent = ""; // Clear feedback
   definitionEl.textContent = ""; // Clear definition
+  correctSpelling.textContent = ""; //Clear correct answer
   questionDisplay.textContent = "Qn: -"; // Reset question display
   clearInterval(timer); // Stop timer
   timerRunning = false; // Reset timer flag
-  timerEl.textContent = "30"; // Reset timer display
+  timerEl.textContent = "Timer: 30"; // Reset timer display
 
   [...questionsGrid.children].forEach(btn => { // Reset question buttons
     btn.disabled = false; // Enable button
@@ -243,6 +288,11 @@ function endContest() {
   contestStarted = false; // End contest
   clearInterval(timer); // Stop timer
   timerRunning = false; // Reset timer flag
+
+  startContestBtn.disabled = false; // Re-enable Start
+
+  // ✅ Hide the "End Contest" button again
+  endContestBtn.style.display = "none"; 
 
   const maxScore = Math.max(...participants.map(p => p.score)); // Find highest score
   const winners = participants.filter(p => p.score === maxScore); // Find all winners

@@ -5,61 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Spelling Bee App</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    /* Simple nav bar styling */
-    nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #333;
-      color: #fff;
-      padding: 10px 20px;
-    }
-
-    nav a {
-      color: #fff;
-      text-decoration: none;
-      margin-left: 15px;
-    }
-
-    nav .nav-left,
-    nav .nav-right {
-      display: flex;
-      align-items: center;
-    }
-  </style>
 </head>
 <body>
 
-  <!-- 📘 Main App -->
-  <main id="app">
-    <h1>Spelling Bee App</h1>
-
-    <!-- Admin Page (should eventually be restricted to admin only) -->
-    <!-- <a href="admin.html">Admin Page</a> -->
-
-    <!-- 🔗 Navigation Bar -->
+  <!-- ===== HEADER ===== -->
+  <header>
     <nav>
       <div class="nav-left">
+        <a href="#">SpellingBee</a>
         <a href="index.html">Home</a>
         <a href="#" id="my-account-link">My Account</a>
       </div>
+
+      <div id="user-info" style="padding: 10px;"></div>
+
       <div class="nav-right">
         <a href="#" id="login-logout-link">Login</a>
       </div>
-      <div id="user-info"></div>
     </nav>
+  </header>
 
-    <!-- Alphabet Buttons -->
+  <!-- ===== MAIN CONTENT ===== -->
+  <main>
+    
+    <!-- Alphabet Bar -->
     <div class="alphabet" id="alphabet"></div>
 
-    <!-- Category Dropdown -->
+    <!-- Category & Contest Setup -->
     <div id="category-container">
-      <label for="category-select">Choose Category:</label>
+      <label for="category-select">Category:</label>
       <select id="category-select"></select>
     </div>
 
-    <!-- Contest Setup -->
     <div id="contest-setup">
       <label for="participant-count">Participants:</label>
       <select id="participant-count">
@@ -69,55 +46,65 @@
         <option value="5">5</option>
       </select>
       <button id="start-contest-btn">Start Contest</button>
+      <button id="end-contest-btn" style="display:none;">End Contest</button>
+    </div>
+
+    <div id="mode">
+      <button id="online-mode">Play Online</button>
+    </div>
+
+    <div id="correct-answer">
+      Correct answer: <span id="answer-correct"></span>
     </div>
 
     <!-- Scoreboard -->
-    <div id="scoreboard" class="scoreboard"></div>
+    <div id="scoreboard" class="scoreboard">
+      <!-- JS will populate participants -->
+    </div>
 
-    <!-- Question Panel -->
-    <section class="center-panel">
-      <div class="question-meta">
-        <span id="current-question">Qn: -</span>
-        <span id="timer">30</span>s
-      </div>
-      <input type="text" id="spelling-input" placeholder="Type your spelling here..." />
-      <div class="buttons">
-        <button id="spell-btn">Start Spelling</button>
-        <button id="check-btn">Check Answer</button>
-      </div>
-      <button id="reset-btn" style="background:#ccc;">Reset Quiz</button>
-      <div id="feedback"></div>
-      <div id="definition" class="hint"></div>
-    </section>
-
-    <!-- Reset Scores -->
-    <button id="reset-scores-btn" style="background:#999; color:#fff;">Reset Scores</button>
-
-    <!-- Sidebars -->
+    <!-- Layout: Left Sidebar / Center Panel / Right Sidebar -->
     <aside class="sidebar left">
       <h3>Contestants</h3>
       <ul id="students"></ul>
     </aside>
 
+    <section class="center-panel">
+      <div class="question-meta">
+        <span id="current-question">Question #: -</span>
+        <span id="timer">Timer: 30</span>
+      </div>
+      <input type="text" id="spelling-input" placeholder="Type here..." />
+      <div class="buttons">
+        <button id="spell-btn">Start Spelling</button>
+        <button id="check-btn">Check Answer</button>
+      </div>
+      <button id="reset-btn">Reset Quiz</button>
+      <button id="reset-scores-btn">Reset Score</button>
+      <div id="feedback"></div>
+      <div id="definition" class="hint">Definition: </div>
+    </section>
+
     <aside class="sidebar right">
-      <h3>Questions</h3>
+      <h3>Questions Grid</h3>
       <div id="questions-grid" class="question-grid"></div>
     </aside>
 
-    <!-- Message display for turns -->
+    <!-- Turn Message -->
     <div id="turn-message" class="hidden"></div>
 
-    <!-- Manual End Contest Button -->
-    <button id="end-contest-btn">End Contest</button>
   </main>
 
-  <!-- JavaScript -->
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    @2025 JMESYS Group
+  </footer>
+
+  <!-- ===== SCRIPTS ===== -->
   <script>
     // Utility function to get user from token
     function getLoggedInUser() {
       const token = localStorage.getItem("token");
       if (!token) return null;
-
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
         const isExpired = payload.exp * 1000 < Date.now();
@@ -127,7 +114,6 @@
       }
     }
 
-
     // Update nav bar based on login status
     function updateNavLinks() {
       const user = getLoggedInUser();
@@ -135,24 +121,21 @@
       const myAccountLink = document.getElementById("my-account-link");
 
       if (user) {
-        // User is logged in
         loginLogoutLink.textContent = "Logout";
+        displayUserInfo(); // show current user info
         loginLogoutLink.onclick = () => {
           localStorage.removeItem("token");
           location.reload();
         };
-
         myAccountLink.onclick = (e) => {
           e.preventDefault();
           window.location.href = "myaccount.html";
         };
       } else {
-        // User not logged in
         loginLogoutLink.textContent = "Login";
         loginLogoutLink.onclick = () => {
           window.location.href = "login.html";
         };
-
         myAccountLink.onclick = (e) => {
           e.preventDefault();
           window.location.href = "login.html?redirect=myaccount.html";
@@ -160,17 +143,13 @@
       }
     }
 
-    updateNavLinks();
-  </script>
-  <script src="script.js"></script>
-  <script src="auth.js"></script>
-  <script>
-    displayUserInfo(); // Run this after auth.js is loaded
-
-    // BUT ensure you're actually calling updateNavLinks() *after* DOM load.
     document.addEventListener("DOMContentLoaded", () => {
       updateNavLinks();
     });
   </script>
+
+  <script src="script.js"></script>
+  <script src="auth.js"></script>
+
 </body>
 </html>

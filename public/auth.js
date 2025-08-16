@@ -33,8 +33,7 @@ function displayUserInfo() {
   if (userInfoEl) {
     userInfoEl.innerHTML = `
       Logged in as <strong>${user.name}</strong> (${user.account_type})
-      <button onclick="clearAuthData()">Logout</button>
-    `;
+    `; //<button onclick="clearAuthData()">Logout</button>
   }
 }
 
