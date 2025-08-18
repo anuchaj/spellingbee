@@ -49,8 +49,8 @@ const addQuestion = async (req, res) => {
   try {
     console.log("📦 Incoming body:", req.body); // ← this should show the payload
 
-    const { word, definition, category } = req.body;
-    const newQuestion = new Question({ word, definition, category });
+    const { word, definition, sentence, category } = req.body;
+    const newQuestion = new Question({ word, definition, sentence, category });
     await newQuestion.save();
 
     res.status(201).json(newQuestion);
