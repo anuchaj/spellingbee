@@ -100,8 +100,8 @@ function selectQuestion(index) {
   correctSpelling.textContent = ""; //Clear correct answer
   spellingInput.value = ""; // Clear input field
   feedback.textContent = ""; // Clear feedback
-  definitionEl.textContent = question.definition; // Display definition
-  sentenceEl.textContent = question.sentence; // Display sentence
+  definitionEl.textContent = `Definition: ${question.definition}`; // Display definition
+  sentenceEl.textContent = `Sentence: ${question.sentence}`; // Display sentence
   questionDisplay.textContent = `Qn: ${index + 1}`; // Display question number
   speak(question.word); // Speak the word
 }
