@@ -21,7 +21,7 @@
       const email = document.getElementById("reset-email").value.trim();
 
       try {
-        const res = await fetch("/api/auth/reset", {
+        const res = await fetch("/api/auth/forgot-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email })

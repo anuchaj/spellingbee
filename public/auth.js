@@ -168,3 +168,22 @@ document.getElementById("update-form").addEventListener("submit", async (e) => {
     document.getElementById("update-error").innerText = "Error updating account.";
   }
 });
+
+// Handle reset password form
+document.getElementById("reset-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("reset-email").value;
+
+  try {
+    const res = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    document.getElementById("forgotMsg").textContent = data.message;
+  } catch (err) {
+    console.error("Error:", err);
+  }
+});
+

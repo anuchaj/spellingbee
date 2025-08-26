@@ -50,7 +50,8 @@
     </div>
 
     <div id="mode">
-      <button id="online-mode">Play Online</button>
+      <!-- <button id="online-mode">Play Online</button> -->
+      <button id="reload-quiz-btn" class="reload-quiz-btn"><a href="index.html">Reload Quiz</a></button>
     </div>
 
     <div id="correct-answer">
@@ -65,7 +66,10 @@
     <!-- Layout: Left Sidebar / Center Panel / Right Sidebar -->
     <aside class="sidebar left">
       <h3>Contestants</h3>
-      <ul id="students"></ul>
+      <ul id="students" class="participant_grid"></ul>
+      <!-- New participant management buttons -->
+      <button id="add-participant-btn" class="add-participant-btn" style="display:none;">Add Participant</button>
+      <button id="submit-participants-btn" class="submit-participants-btn" style="display:none;">Submit Participants</button>
     </aside>
 
     <section class="center-panel">
@@ -83,7 +87,6 @@
       <div id="feedback"></div>
       <div id="definition" class="hint">Definition: </div>
       <hr>
-      <!-- <button id="sentence-btn">View sentence</button> -->
       <div id="sentence" class="hint" style="display:none;">Sentence: </div>
     </section>
 
@@ -152,10 +155,6 @@
       updateNavLinks();
     });
   </script>
-
-  <!-- Load Socket.IO client from server -->
-  <script src="/socket.io/socket.io.js"></script>
-
   <!-- Then load app scripts -->
   <script src="script.js"></script>
   <script src="auth.js"></script>
