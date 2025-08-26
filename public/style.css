@@ -246,7 +246,7 @@ main {
 }
 
 /* Participant grid */
-.participant_grid li {
+.participant_grid li, li {
   list-style-type: none;
   margin: 5px;
 }

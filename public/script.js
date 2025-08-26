@@ -120,7 +120,7 @@ spellBtn.onclick = () => {
 
 function startTimer() {
   if (timerRunning) return;
-  timeLeft = 5;
+  timeLeft = 30;
   timerEl.textContent = `Timer: ${timeLeft}`;
   timerEl.classList.add("fade");
 
