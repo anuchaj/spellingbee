@@ -4,27 +4,123 @@
   <meta charset="UTF-8" />
   <title>Password Reset | SpellingBee</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .auth-form {
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: var(--white);
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .auth-form h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--primary-navy);
+    }
+
+    .auth-form label {
+      display: block;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+
+    .auth-form input[type="email"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .auth-form button[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      background-color: var(--primary-navy);
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .auth-form button:hover {
+      background-color: var(--green);
+    }
+
+    #reset-message,
+    #reset-error {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 0.95rem;
+    }
+
+    #reset-message {
+      color: var(--green);
+    }
+
+    #reset-error {
+      color: red;
+    }
+  </style>
 </head>
 <body>
+
+  <!-- ===== HEADER ===== -->
+  <header>
+    <nav>
+      <div class="nav-left">
+        <a href="index.html">SpellingBee</a>
+        <a href="index.html">Home</a>
+        <a href="howtoplay.html">How to Play</a>
+        <a href="#" id="my-account-link">My Account</a>
+      </div>
+
+      <div id="user-info" style="padding: 10px;"></div>
+
+      <div class="nav-right">
+        <a href="#" id="login-logout-link">Login</a>
+      </div>
+    </nav>
+  </header>
+  
+  <!-- ===== MAIN ===== -->
   <main class="auth-form">
-    <h2>Reset Password</h2>
+    <h2>Reset Your Password</h2>
     <form id="reset-form">
+      <label for="reset-email">Email Address</label>
       <input type="email" id="reset-email" placeholder="Enter your email" required />
       <button type="submit">Send Reset Link</button>
     </form>
-    <p id="reset-message" style="color: green;"></p>
-    <p id="reset-error" style="color: red;"></p>
+    <p id="reset-message"></p>
+    <p id="reset-error"></p>
   </main>
 
-    <!-- ===== FOOTER ===== -->
+  <!-- ===== FOOTER ===== -->
   <footer>
     &copy; 2025 SpellingBee App. JMESYS Group. All rights reserved.
   </footer>
-  
+
+  <!-- ===== JS: Submit Handler ===== -->
   <script>
     document.getElementById("reset-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = document.getElementById("reset-email").value.trim();
+      const resetMessage = document.getElementById("reset-message");
+      const resetError = document.getElementById("reset-error");
+
+      // Clear previous messages
+      resetMessage.textContent = '';
+      resetError.textContent = '';
+
+      if (!email) {
+        resetError.textContent = "Please enter your email.";
+        return;
+      }
 
       try {
         const res = await fetch("/api/auth/forgot-password", {
@@ -34,13 +130,15 @@
         });
 
         const data = await res.json();
+
         if (res.ok) {
-          document.getElementById("reset-message").innerText = data.message || "Reset link sent to your email.";
+          resetMessage.textContent = data.message || "Reset link sent to your email.";
         } else {
-          document.getElementById("reset-error").innerText = data.message || "Failed to send reset link.";
+          resetError.textContent = data.message || "Failed to send reset link.";
         }
       } catch (err) {
         console.error(err);
+        resetError.textContent = "An error occurred. Please try again later.";
       }
     });
   </script>

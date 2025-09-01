@@ -425,6 +425,64 @@ function playTimeUpSound() {
   audio.play();
 }
 
+
+// ========== Responsive Nav Toggle ==========
+const hamburger = document.getElementById("hamburger-menu");
+const nav = document.querySelector("nav");
+
+hamburger.addEventListener("click", () => {
+  nav.classList.toggle("responsive");
+
+  // Toggle icon between ☰ and ✖
+  if (nav.classList.contains("responsive")) {
+    hamburger.innerHTML = "&#10005;"; // ✖
+  } else {
+    hamburger.innerHTML = "&#9776;"; // ☰
+  }
+});
+
+// ========== Click Outside to Close ==========
+document.addEventListener("click", (e) => {
+  const isClickInside = nav.contains(e.target);
+  const isHamburgerClick = hamburger.contains(e.target);
+
+  if (!isClickInside && !isHamburgerClick && nav.classList.contains("responsive")) {
+    nav.classList.remove("responsive");
+    hamburger.innerHTML = "&#9776;";
+  }
+});
+
+// ========== Keyboard Accessibility ==========
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && nav.classList.contains("responsive")) {
+    nav.classList.remove("responsive");
+    hamburger.innerHTML = "&#9776;";
+    hamburger.focus();
+  }
+
+  // Trap focus within nav when open
+  if (nav.classList.contains("responsive") && e.key === "Tab") {
+    const focusableSelectors = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const focusableElements = nav.querySelectorAll(focusableSelectors);
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }
+});
+
+
+
 // ========== Init ==========
 document.addEventListener("DOMContentLoaded", () => {
   loadCategories();

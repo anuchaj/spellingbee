@@ -1,5 +1,8 @@
 # spellingbee
 
+# Author and Designer: Joseph Anucha
+# Developer: Joseph Anucha
+
 Some major adjustments for multi-player mode.
 1. Change the server.js to include Socket.io http server
 2. Replaced app.listen with http.createServer(app) → required for Socket.IO.

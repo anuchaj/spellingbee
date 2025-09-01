@@ -4,10 +4,97 @@
   <meta charset="UTF-8" />
   <title>Login | SpellingBee</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Scoped auth form improvements */
+    .auth-form {
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: var(--white);
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .auth-form p a {
+      text-decoration: none;
+    }
+
+    .auth-form h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--primary-navy);
+    }
+
+    .auth-form label {
+      display: block;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+
+    .auth-form input[type="email"],
+    .auth-form input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      color: var(--primary-navy);
+    }
+
+    .auth-form button[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      background-color: var(--primary-navy);
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .auth-form button:hover {
+      background-color: var(--green);
+    }
+
+    .auth-form p {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 0.95rem;
+    }
+
+    .auth-form a {
+      color: var(--primary-navy);
+      text-decoration: underline;
+    }
+
+    #login-error {
+      color: red;
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
 
-   <!-- ===== HEADER ===== -->
+  <!-- ===== HEADER ===== -->
   <header>
     <nav>
       <div class="nav-left">
@@ -22,26 +109,72 @@
       <div class="nav-right">
         <a href="#" id="login-logout-link">Login</a>
       </div>
+
+      <div id="hamburger-menu" class="hamburger">&#9776;</div>
     </nav>
   </header>
 
+  <!-- ===== LOGIN FORM ===== -->
   <main class="auth-form">
     <h2>Login</h2>
     <form id="login-form">
+      <label for="email">Email:</label>
       <input type="email" id="email" placeholder="Email" required />
-      <input type="password" id="password" placeholder="Password" required />
+
+      <label for="password">Password:</label>
+      <div class="password-wrapper">
+        <input type="password" id="password" placeholder="Password" required />
+        <button type="button" class="toggle-password" onclick="togglePassword('password')">👁️</button>
+      </div>
+
       <button type="submit">Login</button>
+      <p id="login-error"></p>
     </form>
+
     <p><a href="reset.html">Forgot your password?</a></p>
     <p>Don't have an account? <a href="signup.html">Sign up here</a></p>
-    <p id="login-error" style="color: red;"></p>
   </main>
 
-    <!-- ===== FOOTER ===== -->
+  <!-- ===== FOOTER ===== -->
   <footer>
     &copy; 2025 SpellingBee App. JMESYS Group. All rights reserved.
   </footer>
 
+  <!-- ===== JS ===== -->
+  <script>
+    function togglePassword(fieldId) {
+      const input = document.getElementById(fieldId);
+      input.type = input.type === "password" ? "text" : "password";
+    }
+
+    // Optional: Add basic form validation feedback
+    document.getElementById("login-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const error = document.getElementById("login-error");
+
+      if (!email || !password) {
+        error.textContent = "Please fill in all fields.";
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        error.textContent = "Please enter a valid email.";
+        return;
+      }
+
+      error.textContent = "";
+
+      // Proceed with actual login logic
+      // You can trigger an API call here or defer to auth.js
+      console.log("Logging in:", { email, password });
+    });
+  </script>
+
+  <script src="script.js"></script>
   <script src="auth.js"></script>
 </body>
 </html>
