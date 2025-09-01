@@ -23,7 +23,7 @@
       <div id="user-info" style="padding: 10px;"></div>
 
       <div class="nav-right">
-        <a href="#" id="login-logout-link">Login</a>
+        <a href="#" id="logout-btn">Log out</a>
       </div>
     </nav>
   </header>
@@ -121,6 +121,13 @@
   <script>
     // protectAdminPage();     // block access if not admin
     displayUserInfo();      // show current user info
+
+    // Logout
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      window.location.href = "index.html";
+    });
+    
   </script>
 </body>
 </html>

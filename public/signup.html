@@ -6,7 +6,8 @@
   <link rel="stylesheet" href="style.css" />
   <style>
     .auth-form {
-      max-width: 400px;
+      width: 600px;
+      max-width: 990px;
       margin: 40px auto;
       padding: 20px;
       background-color: var(--white);
@@ -90,6 +91,12 @@
       text-align: center;
       margin-top: 10px;
     }
+
+    @media (max-width: 768px) {
+      .auth-form {
+      width: 400px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -109,6 +116,8 @@
       <div class="nav-right">
         <a href="#" id="login-logout-link">Login</a>
       </div>
+
+      <div id="hamburger-menu" class="hamburger">&#9776;</div>
     </nav>
   </header>
 

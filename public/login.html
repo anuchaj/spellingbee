@@ -7,7 +7,8 @@
   <style>
     /* Scoped auth form improvements */
     .auth-form {
-      max-width: 400px;
+      width: 600px;
+      max-width: 990px;
       margin: 40px auto;
       padding: 20px;
       background-color: var(--white);
@@ -33,7 +34,8 @@
     }
 
     .auth-form input[type="email"],
-    .auth-form input[type="password"] {
+    .auth-form input[type="password"],
+    .auth-form input[type="text"] {
       width: 100%;
       padding: 10px;
       font-size: 1rem;
@@ -89,6 +91,12 @@
       color: red;
       text-align: center;
       margin-top: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .auth-form {
+      width: 400px;
+      }
     }
   </style>
 </head>
