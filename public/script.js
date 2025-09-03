@@ -97,6 +97,7 @@ function renderQuestionGrid() {
 
 // ========== Select Question ==========
 function selectQuestion(index) {
+  spellBtn.disabled = false;
   if (timerRunning) return;
   currentQuestionIndex = index;
   const question = questions[index];
@@ -140,6 +141,7 @@ function startTimer() {
       feedback.textContent = "⏰ Time's up!";
       checkAnswer();
       spellingInput.disabled = true;
+      spellBtn.disabled = true;
     }
   }, 1000);
 }
@@ -159,6 +161,7 @@ function checkAnswer() {
     gridBtn2.disabled = true;
     gridBtn2.style.backgroundColor = "green";
     spellingInput.disabled = true;
+    spellBtn.disabled = true;
 
     if (contestStarted) {
       participants[currentParticipant].score += 2;
@@ -179,6 +182,7 @@ function checkAnswer() {
     gridBtn2.style.backgroundColor = "red";
     gridBtn2.disabled = true;
     spellingInput.disabled = true;
+    spellBtn.disabled = true;
   }
 }
 
@@ -199,6 +203,7 @@ checkBtn.onclick = () => {
     gridBtn.style.backgroundColor = "green";
     correctSpelling.innerHTML = correct.toUpperCase();
     spellingInput.disabled = true;
+    spellBtn.disabled = true;
 
     if (contestStarted) {
       participants[currentParticipant].score += 2;
