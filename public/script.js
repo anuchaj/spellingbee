@@ -120,9 +120,11 @@ spellBtn.onclick = () => {
 
 function startTimer() {
   if (timerRunning) return;
-  timeLeft = 30;
+  timeLeft = 15;
   timerEl.textContent = `Timer: ${timeLeft}`;
   timerEl.classList.add("fade");
+
+  spellingInput.disabled = false;
 
   timerRunning = true;
   clearInterval(timer);
@@ -137,6 +139,7 @@ function startTimer() {
       playTimeUpSound();
       feedback.textContent = "⏰ Time's up!";
       checkAnswer();
+      spellingInput.disabled = true;
     }
   }, 1000);
 }
@@ -155,6 +158,7 @@ function checkAnswer() {
     applauseSound("applause");
     gridBtn2.disabled = true;
     gridBtn2.style.backgroundColor = "green";
+    spellingInput.disabled = true;
 
     if (contestStarted) {
       participants[currentParticipant].score += 2;
@@ -174,6 +178,7 @@ function checkAnswer() {
     playSound("wrong");
     gridBtn2.style.backgroundColor = "red";
     gridBtn2.disabled = true;
+    spellingInput.disabled = true;
   }
 }
 
@@ -193,6 +198,7 @@ checkBtn.onclick = () => {
     gridBtn.disabled = true;
     gridBtn.style.backgroundColor = "green";
     correctSpelling.innerHTML = correct.toUpperCase();
+    spellingInput.disabled = true;
 
     if (contestStarted) {
       participants[currentParticipant].score += 2;
